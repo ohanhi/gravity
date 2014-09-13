@@ -15,6 +15,7 @@
 
 function sketchProc(P) {
 
+  // BEGIN DEFINITIONS
   const CANVAS = {
     width: 640,
     height: 480
@@ -53,15 +54,38 @@ function sketchProc(P) {
     this.m += m;
   };
 
+  function PartSystem() {
+    this.parts = [];
+  }
+  PartSystem.prototype.add = function(part) {
+    this.parts.push(part);
+  };
+  PartSystem.prototype.update = function() {
+    this.parts.foreach(function(part, index){
+      // TODO
+    });
+  };
+  // END DEFINITIONS
+
+
+  var ps = new PartSystem();
+
   randomizeParts = function(n) {
     for(var i = 0; i < n; i++) {
-
+      var part = new Part(
+        Math.random()*CANVAS.width,
+        Math.random()*CANVAS.height,
+        Math.random()*10,
+        Math.random()*10,
+        Math.random()*10
+      );
+      ps.add(part);
     }
-  }
+  };
 
   P.setup = function() {
     P.size(CANVAS.width, CANVAS.height);
-  }
+  };
 
   // Override draw function, by default it will be called 60 times per second
   P.draw = function() {
