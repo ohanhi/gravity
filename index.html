@@ -21,6 +21,19 @@ function sketchProc(P) {
   },
   gravitationalConstant = 1.0;
 
+  /**
+  Newton's universal gravitation function.
+
+  @link http://en.wikipedia.org/wiki/Newton's_law_of_universal_gravitation
+
+  @param m1 mass of part 1
+  @param m2 mass of part 2
+  @param r distance between center of masses
+  */
+  const gravitation = function(m1, m2, r) {
+    return gravitationalConstant * (m1*m2 / (r*r));
+  };
+
   function Part(x, y, vx, vy, m) {
     this.x = x;
     this.y = y;
