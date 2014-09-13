@@ -20,7 +20,8 @@ function sketchProc(P) {
     width: 640,
     height: 480
   },
-  gravitationalConstant = 1.0;
+  G_CONSTANT = 1.0,
+  TIME_CONSTANT = 0.10;
 
   /**
   Newton's universal gravitation function.
@@ -32,7 +33,21 @@ function sketchProc(P) {
   @param r distance between center of masses
   */
   const gravitation = function(m1, m2, r) {
-    return gravitationalConstant * (m1*m2 / (r*r));
+    return G_CONSTANT * (m1*m2 / (r*r));
+  };
+
+  /**
+  Converts mass to displayed size.
+  */
+  const massToSize = function(m) {
+    return m * 2;
+  };
+
+  /**
+  Converts mass to displayed color.
+  */
+  const massToColor = function(m) {
+    return P.color((m*20)%256,255,255, 200);
   };
 
   function Part(x, y, vx, vy, m) {
@@ -42,13 +57,9 @@ function sketchProc(P) {
     this.vy = vy;
     this.m = m;
   }
-  Part.prototype.setPosition = function(x, y) {
-    this.x = x;
-    this.y = y;
-  };
-  Part.prototype.setPosition = function(x, y) {
-    this.x = x;
-    this.y = y;
+  Part.prototype.updatePosition = function() {
+    this.x += this.vx * TIME_CONSTANT;
+    this.y += this.vy * TIME_CONSTANT;
   };
   Part.prototype.increaseMass = function(m) {
     this.m += m;
@@ -60,36 +71,54 @@ function sketchProc(P) {
   PartSystem.prototype.add = function(part) {
     this.parts.push(part);
   };
-  PartSystem.prototype.update = function() {
-    this.parts.foreach(function(part, index){
-      // TODO
+  PartSystem.prototype.update = function(draw) {
+    this.parts.forEach(function(part, index){
+      // Update the position and speed of the part
+      part.vx += 1;
+      part.updatePosition();
+
+      // Draw the part, if requested
+      if (draw && draw === true) {
+        var size = massToSize(part.m),
+        color = massToColor(part.m);
+        P.fill(color);
+        P.ellipse(part.x, part.y, size, size);
+      }
     });
   };
-  // END DEFINITIONS
-
-
-  var ps = new PartSystem();
-
-  randomizeParts = function(n) {
+  PartSystem.prototype.redraw = function() {
+    this.update(true);
+  };
+  PartSystem.prototype.randomizeParts = function(n) {
     for(var i = 0; i < n; i++) {
       var part = new Part(
         Math.random()*CANVAS.width,
         Math.random()*CANVAS.height,
         Math.random()*10,
         Math.random()*10,
-        Math.random()*10
+        Math.random()*10 + 3
       );
-      ps.add(part);
+      this.add(part);
     }
   };
+  // END DEFINITIONS
+
+
+  var ps = new PartSystem();
 
   P.setup = function() {
     P.size(CANVAS.width, CANVAS.height);
+    P.ellipseMode(P.CENTER);
+    P.colorMode(P.HSB);
+
+    ps.randomizeParts(2);
   };
 
   // Override draw function, by default it will be called 60 times per second
   P.draw = function() {
     P.background(10);
+
+    ps.redraw();
   };
 
 }
