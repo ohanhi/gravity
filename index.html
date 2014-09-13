@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gravity</title>
+  <script src="bower_components/Processing.js/processing.js"></script>
+</head>
+<body>
+
+<h1>Gravity</h1>
+<h2>Simple universal gravity simulation with processing.js</h2>
+
+<p><canvas id="processing-canvas" width="800" height="600"></canvas></p>
+
+<script type="text/javascript">
+
+function sketchProc(P) {
+
+  const CANVAS = {
+    width: 640,
+    height: 480
+  },
+  gravitationalConstant = 1.0;
+
+  function Part(x, y, vx, vy, m) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.m = m;
+  }
+  Part.prototype.setPosition = function(x, y) {
+    this.x = x;
+    this.y = y;
+  };
+  Part.prototype.setPosition = function(x, y) {
+    this.x = x;
+    this.y = y;
+  };
+  Part.prototype.increaseMass = function(m) {
+    this.m += m;
+  };
+
+  randomizeParts = function(n) {
+    for(var i = 0; i < n; i++) {
+
+    }
+  }
+
+  P.setup = function() {
+    P.size(CANVAS.width, CANVAS.height);
+  }
+
+  // Override draw function, by default it will be called 60 times per second
+  P.draw = function() {
+    P.background(10);
+  };
+
+}
+
+var canvas = document.getElementById("processing-canvas");
+// attaching the sketchProc function to the canvas
+var processing = new Processing(canvas, sketchProc);
+// processing.exit(); to detach it
+</script>
+
+</body>
+</html>
