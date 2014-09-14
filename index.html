@@ -107,10 +107,11 @@ function sketchProc(P) {
     this.parts.push(part);
   };
   PartSystem.prototype.update = function(draw) {
-    this.parts.forEach(function(part, index){
+    var self = this;
+    self.parts.forEach(function(part, index){
       // Update the position and speed of the part
-      part.vx += 1;
-      part.updatePosition();
+      part.updateVelocity(self.parts);
+      part.move();
 
       // Draw the part, if requested
       if (draw && draw === true) {
@@ -124,13 +125,13 @@ function sketchProc(P) {
   PartSystem.prototype.redraw = function() {
     this.update(true);
   };
-  PartSystem.prototype.randomizeParts = function(n) {
+  PartSystem.prototype.randomizeParts = function(n, startVelocity) {
     for(var i = 0; i < n; i++) {
       var part = new Part(
         Math.random()*CANVAS.width,
         Math.random()*CANVAS.height,
-        Math.random()*10,
-        Math.random()*10,
+        startVelocity ? Math.random()*10*randomPlusMinus() : 0,
+        startVelocity ? Math.random()*10*randomPlusMinus() : 0,
         Math.random()*10 + 3
       );
       this.add(part);
@@ -140,13 +141,12 @@ function sketchProc(P) {
 
 
   var ps = new PartSystem();
+  ps.randomizeParts(100, true);
 
   P.setup = function() {
     P.size(CANVAS.width, CANVAS.height);
     P.ellipseMode(P.CENTER);
     P.colorMode(P.HSB);
-
-    ps.randomizeParts(2);
   };
 
   // Override draw function, by default it will be called 60 times per second
