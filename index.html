@@ -74,7 +74,7 @@ function sketchProc(P) {
   Converts mass to displayed color.
   */
   const massToColor = function(m) {
-    return P.color((m*10)%256,255,255, 200);
+    return P.color((m*10)%50,255,255, 200);
   };
 
   function Part(x, y, vx, vy, m) {
@@ -139,7 +139,7 @@ function sketchProc(P) {
     var part = new Part(
       CANVAS.width/2, CANVAS.height/2,
       0, 0,
-      100*n
+      10*n
     );
     this.parts.push(part);
   };
@@ -156,8 +156,18 @@ function sketchProc(P) {
         color = massToColor(part.m);
         P.fill(color);
         P.ellipse(part.x, part.y, size, size);
+        
+        
       }
     });
+    
+    if (draw && draw === true) {
+      P.fill(0);
+      P.rect(0, CANVAS.height - 60, 0, CANVAS.height - 40);
+      P.fill(240);
+      P.textSize(32);
+      P.text(self.parts.length, 20, CANVAS.height - 40);
+    }
   };
   PartSystem.prototype.redraw = function() {
     this.update(true);
@@ -196,7 +206,7 @@ function sketchProc(P) {
       var part = new Part(
         x, y,
         vx, vy,
-        Math.random()*10 + 3
+        (Math.random()*10 + 3) * 0.02
       );
       this.add(part);
     }
@@ -205,18 +215,21 @@ function sketchProc(P) {
 
 
   var ps = new PartSystem();
-  ps.createProtoDisk(1000);
+  ps.createProtoDisk(10000);
 
   P.setup = function() {
     P.size(CANVAS.width, CANVAS.height);
     P.ellipseMode(P.CENTER);
     P.colorMode(P.HSB);
+    P.noStroke();
   };
 
   // Override draw function, by default it will be called 60 times per second
   P.draw = function() {
-    P.background(10);
-
+    P.colorMode(P.RGB);
+    P.fill(0,0,0, 140);
+    P.rect(0,0, CANVAS.width,CANVAS.height);
+    P.colorMode(P.HSB);
     ps.redraw();
   };
 
