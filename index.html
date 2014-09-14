@@ -44,7 +44,7 @@ function sketchProc(P) {
   },
   G_CONSTANT = 1.0,
   TIME_STEP = 0.15,
-  COLLISION_RADIUS = 15.0;
+  COLLISION_RADIUS = 10.0;
 
   /**
   Newton's universal gravitation function.
@@ -68,13 +68,16 @@ function sketchProc(P) {
   Converts mass to displayed size.
   */
   const massToSize = function(m) {
-    return Math.log(m)*3;
+    return Math.log(m)*2;
   };
   /**
   Converts mass to displayed color.
   */
-  const massToColor = function(m) {
-    return P.color((m*10)%50,255,255, 200);
+  const massToColor = function(m, biggestMass) {
+    if (biggestMass > 0) {
+      return P.color(m/biggestMass*50+10,100,100, 80);
+    }
+    return P.color(0,0,0,0);
   };
 
   function Part(x, y, vx, vy, m) {
@@ -128,6 +131,7 @@ function sketchProc(P) {
 
   function PartSystem() {
     this.parts = [];
+    this.biggestMass = 0.0;
   }
   PartSystem.prototype.destroy = function() {
     this.parts = undefined;
@@ -153,14 +157,16 @@ function sketchProc(P) {
       // Draw the part, if requested
       if (draw && draw === true) {
         var size = massToSize(part.m),
-        color = massToColor(part.m);
+        color = massToColor(part.m, self.biggestMass);
         P.fill(color);
         P.ellipse(part.x, part.y, size, size);
-        
-        
+      }
+
+      if (part.m > self.biggestMass) {
+        self.biggestMass = part.m;
       }
     });
-    
+
     if (draw && draw === true) {
       P.fill(0);
       P.rect(0, CANVAS.height - 60, 0, CANVAS.height - 40);
@@ -227,9 +233,9 @@ function sketchProc(P) {
   // Override draw function, by default it will be called 60 times per second
   P.draw = function() {
     P.colorMode(P.RGB);
-    P.fill(0,0,0, 140);
+    P.fill(0,0,0, 70);
     P.rect(0,0, CANVAS.width,CANVAS.height);
-    P.colorMode(P.HSB);
+    P.colorMode(P.HSB, 100);
     ps.redraw();
   };
 
