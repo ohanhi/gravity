@@ -36,19 +36,23 @@ function sketchProc(P) {
   const gravitation = function(m1, m2, r) {
     return G_CONSTANT * (m1*m2 / (r*r));
   };
-
+  /**
+  Utility function that returns -1 or 1 at 50% probability.
+  */
+  const randomPlusMinus = function() {
+    return (Math.random() < 0.5) ? -1 : 1;
+  };
   /**
   Converts mass to displayed size.
   */
   const massToSize = function(m) {
-    return m * 2;
+    return Math.log(m)*3;
   };
-
   /**
   Converts mass to displayed color.
   */
   const massToColor = function(m) {
-    return P.color((m*20)%256,255,255, 200);
+    return P.color((m*10)%256,255,255, 200);
   };
 
   function Part(x, y, vx, vy, m) {
@@ -106,6 +110,14 @@ function sketchProc(P) {
   PartSystem.prototype.add = function(part) {
     this.parts.push(part);
   };
+  PartSystem.prototype.addCentralPart = function() {
+    var part = new Part(
+      CANVAS.width/2, CANVAS.height/2,
+      0, 0,
+      1000
+    );
+    this.parts.push(part);
+  };
   PartSystem.prototype.update = function(draw) {
     var self = this;
     self.parts.forEach(function(part, index){
@@ -141,6 +153,7 @@ function sketchProc(P) {
 
 
   var ps = new PartSystem();
+  ps.addCentralPart();
   ps.randomizeParts(100, true);
 
   P.setup = function() {
