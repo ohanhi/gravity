@@ -107,14 +107,17 @@ function sketchProc(P) {
   function PartSystem() {
     this.parts = [];
   }
+  PartSystem.prototype.destroy = function() {
+    this.parts = undefined;
+  };
   PartSystem.prototype.add = function(part) {
     this.parts.push(part);
   };
-  PartSystem.prototype.addCentralPart = function() {
+  PartSystem.prototype.addCentralPart = function(n) {
     var part = new Part(
       CANVAS.width/2, CANVAS.height/2,
       0, 0,
-      1000
+      100*n
     );
     this.parts.push(part);
   };
@@ -139,11 +142,38 @@ function sketchProc(P) {
   };
   PartSystem.prototype.randomizeParts = function(n, startVelocity) {
     for(var i = 0; i < n; i++) {
+      var vx = startVelocity ? Math.random()*10*randomPlusMinus() : 0,
+        vy = startVelocity ? Math.random()*10*randomPlusMinus() : 0;
       var part = new Part(
-        Math.random()*CANVAS.width,
-        Math.random()*CANVAS.height,
-        startVelocity ? Math.random()*10*randomPlusMinus() : 0,
-        startVelocity ? Math.random()*10*randomPlusMinus() : 0,
+        Math.random()*CANVAS.width, Math.random()*CANVAS.height,
+        vx, vy,
+        Math.random()*10 + 3
+      );
+      this.add(part);
+    }
+  };
+  PartSystem.prototype.createProtoDisk = function(n) {
+    this.addCentralPart(n);
+
+    // all other parts get an initial velocity about "around the centre"
+    for(var i = 0; i < n; i++) {
+      var x = Math.random()*CANVAS.width,
+        y = Math.random()*CANVAS.height,
+        cx = CANVAS.width*0.5,
+        cy = CANVAS.height*0.5,
+        dx = x - cx,
+        dy = y - cy,
+        vx = Math.random()*20,
+        vy = Math.random()*20;
+      if (dy > 0) {
+        vx = -vx;
+      }
+      if (dx < 0) {
+        vy = -vy;
+      }
+      var part = new Part(
+        x, y,
+        vx, vy,
         Math.random()*10 + 3
       );
       this.add(part);
@@ -153,8 +183,7 @@ function sketchProc(P) {
 
 
   var ps = new PartSystem();
-  ps.addCentralPart();
-  ps.randomizeParts(100, true);
+  ps.createProtoDisk(1000);
 
   P.setup = function() {
     P.size(CANVAS.width, CANVAS.height);
