@@ -21,7 +21,8 @@ function sketchProc(P) {
     height: 480
   },
   G_CONSTANT = 1.0,
-  TIME_CONSTANT = 0.10;
+  TIME_STEP = 0.15,
+  COLLISION_RADIUS = 15.0;
 
   /**
   Newton's universal gravitation function.
@@ -57,12 +58,46 @@ function sketchProc(P) {
     this.vy = vy;
     this.m = m;
   }
-  Part.prototype.updatePosition = function() {
-    this.x += this.vx * TIME_CONSTANT;
-    this.y += this.vy * TIME_CONSTANT;
+  Part.prototype.move = function() {
+    this.x += this.vx * TIME_STEP;
+    this.y += this.vy * TIME_STEP;
   };
-  Part.prototype.increaseMass = function(m) {
-    this.m += m;
+  Part.prototype.collide = function(part) {
+    // totally inelastic collision
+    this.vx = (this.m*this.vx + part.m*part.vx) / (this.m + part.m);
+    this.vy = (this.m*this.vy + part.m*part.vy) / (this.m + part.m);
+    this.m += part.m;
+  };
+  /*
+  Determines the force from each part of the system and
+  updates the velocities accordingly.
+  */
+  Part.prototype.updateVelocity = function(parts) {
+    var self = this, ax = 0, ay = 0;
+    parts.forEach(function(part, index){
+      // distance of particles
+      var dx = self.x-part.x,
+      dy = self.y-part.y,
+      r = Math.sqrt(
+        dx*dx+
+        dy*dy
+      );
+
+      // collision detection
+      if (r && r < COLLISION_RADIUS) {
+        self.collide(part);
+        parts.splice(index, 1);
+        return;
+      }
+
+      // gravitational force
+      var f = gravitation(self.m, part.m, r);
+
+      ax = (r===0)? 0 : (f * (dx/r)) / self.m;
+      ay = (r===0)? 0 : (f * (dy/r)) / self.m;
+      self.vx += ax * TIME_STEP * -1;
+      self.vy += ay * TIME_STEP * -1;
+    });
   };
 
   function PartSystem() {
