@@ -3,13 +3,35 @@
 <head>
   <title>Gravity</title>
   <script src="bower_components/Processing.js/processing.js"></script>
+
+  <style>
+  body {
+    margin: 0;
+    padding: 0 1em;
+    background: #111;
+    color: rgba(255,255,255, 0.6);
+    font-family: sans-serif;
+  }
+  h1, h2 {
+    font-weight: normal;
+  }
+
+  #processing-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  </style>
 </head>
 <body>
 
 <h1>Gravity</h1>
 <h2>Simple universal gravity simulation with processing.js</h2>
 
-<p><canvas id="processing-canvas" width="800" height="600"></canvas></p>
+<canvas id="processing-canvas" width="100%" height="100%"></canvas>
 
 <script type="text/javascript">
 
@@ -17,8 +39,8 @@ function sketchProc(P) {
 
   // BEGIN DEFINITIONS
   const CANVAS = {
-    width: 640,
-    height: 480
+    width: window.innerWidth,
+    height: window.innerHeight
   },
   G_CONSTANT = 1.0,
   TIME_STEP = 0.15,
@@ -107,14 +129,17 @@ function sketchProc(P) {
   function PartSystem() {
     this.parts = [];
   }
+  PartSystem.prototype.destroy = function() {
+    this.parts = undefined;
+  };
   PartSystem.prototype.add = function(part) {
     this.parts.push(part);
   };
-  PartSystem.prototype.addCentralPart = function() {
+  PartSystem.prototype.addCentralPart = function(n) {
     var part = new Part(
       CANVAS.width/2, CANVAS.height/2,
       0, 0,
-      1000
+      100*n
     );
     this.parts.push(part);
   };
@@ -139,11 +164,38 @@ function sketchProc(P) {
   };
   PartSystem.prototype.randomizeParts = function(n, startVelocity) {
     for(var i = 0; i < n; i++) {
+      var vx = startVelocity ? Math.random()*10*randomPlusMinus() : 0,
+        vy = startVelocity ? Math.random()*10*randomPlusMinus() : 0;
       var part = new Part(
-        Math.random()*CANVAS.width,
-        Math.random()*CANVAS.height,
-        startVelocity ? Math.random()*10*randomPlusMinus() : 0,
-        startVelocity ? Math.random()*10*randomPlusMinus() : 0,
+        Math.random()*CANVAS.width, Math.random()*CANVAS.height,
+        vx, vy,
+        Math.random()*10 + 3
+      );
+      this.add(part);
+    }
+  };
+  PartSystem.prototype.createProtoDisk = function(n) {
+    this.addCentralPart(n);
+
+    // all other parts get an initial velocity about "around the centre"
+    for(var i = 0; i < n; i++) {
+      var x = Math.random()*CANVAS.width,
+        y = Math.random()*CANVAS.height,
+        cx = CANVAS.width*0.5,
+        cy = CANVAS.height*0.5,
+        dx = x - cx,
+        dy = y - cy,
+        vx = Math.random()*20,
+        vy = Math.random()*20;
+      if (dy > 0) {
+        vx = -vx;
+      }
+      if (dx < 0) {
+        vy = -vy;
+      }
+      var part = new Part(
+        x, y,
+        vx, vy,
         Math.random()*10 + 3
       );
       this.add(part);
@@ -153,8 +205,7 @@ function sketchProc(P) {
 
 
   var ps = new PartSystem();
-  ps.addCentralPart();
-  ps.randomizeParts(100, true);
+  ps.createProtoDisk(1000);
 
   P.setup = function() {
     P.size(CANVAS.width, CANVAS.height);
