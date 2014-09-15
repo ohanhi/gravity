@@ -35,6 +35,13 @@
 
 <script type="text/javascript">
 
+var SKETCH_OPTIONS = {
+  centerMass: 100000,
+  partCount: 1000,
+  partMassFactor: 0.2,
+  gravitationalConstant: 1.0
+};
+
 function sketchProc(P) {
 
   // BEGIN DEFINITIONS
@@ -42,7 +49,6 @@ function sketchProc(P) {
     width: window.innerWidth,
     height: window.innerHeight
   },
-  G_CONSTANT = 1.0,
   TIME_STEP = 0.15,
   COLLISION_RADIUS = 10.0;
 
@@ -56,7 +62,7 @@ function sketchProc(P) {
   @param r distance between center of masses
   */
   const gravitation = function(m1, m2, r) {
-    return G_CONSTANT * (m1*m2 / (r*r));
+    return SKETCH_OPTIONS.gravitationalConstant * (m1*m2 / (r*r));
   };
   /**
   Utility function that returns -1 or 1 at 50% probability.
@@ -90,6 +96,12 @@ function sketchProc(P) {
   Part.prototype.move = function() {
     this.x += this.vx * TIME_STEP;
     this.y += this.vy * TIME_STEP;
+  };
+  Part.prototype.draw = function(biggestMass) {
+    var size = massToSize(this.m),
+    color = massToColor(this.m, biggestMass);
+    P.fill(color);
+    P.ellipse(this.x, this.y, size, size);
   };
   Part.prototype.collide = function(part) {
     // totally inelastic collision
@@ -139,11 +151,11 @@ function sketchProc(P) {
   PartSystem.prototype.add = function(part) {
     this.parts.push(part);
   };
-  PartSystem.prototype.addCentralPart = function(n) {
+  PartSystem.prototype.addCentralPart = function() {
     var part = new Part(
       CANVAS.width/2, CANVAS.height/2,
       0, 0,
-      10*n
+      SKETCH_OPTIONS.centerMass
     );
     this.parts.push(part);
   };
@@ -156,12 +168,10 @@ function sketchProc(P) {
 
       // Draw the part, if requested
       if (draw && draw === true) {
-        var size = massToSize(part.m),
-        color = massToColor(part.m, self.biggestMass);
-        P.fill(color);
-        P.ellipse(part.x, part.y, size, size);
+        part.draw(self.biggestMass);
       }
 
+      // Update biggestMass, used for visualizing parts
       if (part.m > self.biggestMass) {
         self.biggestMass = part.m;
       }
@@ -170,8 +180,7 @@ function sketchProc(P) {
     if (draw && draw === true) {
       P.fill(0);
       P.rect(0, CANVAS.height - 60, 0, CANVAS.height - 40);
-      P.fill(240);
-      P.textSize(32);
+      P.fill(90);
       P.text(self.parts.length, 20, CANVAS.height - 40);
     }
   };
@@ -185,7 +194,7 @@ function sketchProc(P) {
       var part = new Part(
         Math.random()*CANVAS.width, Math.random()*CANVAS.height,
         vx, vy,
-        Math.random()*10 + 3
+        (Math.random()*10 + 3) * SKETCH_OPTIONS.partMassFactor
       );
       this.add(part);
     }
@@ -212,7 +221,7 @@ function sketchProc(P) {
       var part = new Part(
         x, y,
         vx, vy,
-        (Math.random()*10 + 3) * 0.02
+        (Math.random()*10 + 3) * SKETCH_OPTIONS.partMassFactor
       );
       this.add(part);
     }
@@ -221,19 +230,20 @@ function sketchProc(P) {
 
 
   var ps = new PartSystem();
-  ps.createProtoDisk(10000);
+  ps.createProtoDisk(SKETCH_OPTIONS.partCount);
 
   P.setup = function() {
     P.size(CANVAS.width, CANVAS.height);
     P.ellipseMode(P.CENTER);
     P.colorMode(P.HSB);
     P.noStroke();
+    P.textSize(24);
   };
 
   // Override draw function, by default it will be called 60 times per second
   P.draw = function() {
     P.colorMode(P.RGB);
-    P.fill(0,0,0, 70);
+    P.fill(0,0,0, 40);
     P.rect(0,0, CANVAS.width,CANVAS.height);
     P.colorMode(P.HSB, 100);
     ps.redraw();
@@ -245,6 +255,11 @@ var canvas = document.getElementById("processing-canvas");
 // attaching the sketchProc function to the canvas
 var processing = new Processing(canvas, sketchProc);
 // processing.exit(); to detach it
+
+var restart = function() {
+  processing.exit();
+  processing = new Processing(canvas, sketchProc);
+};
 </script>
 
 </body>
