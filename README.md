@@ -7,3 +7,10 @@ Uses parts of ES6, so might not work on all browsers (yet).
 
 
 License: [MIT](LICENSE)
+
+## Demo
+
+Click on the GIF
+
+[![](screencap.gif)](http://ohanhi.github.io/gravity/)
+
