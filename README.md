@@ -18,10 +18,17 @@ Click on the GIF
 ## To Do
 
 ☑ Parameters for the system
+
 ☐ Collision repositioning (jagged collisions bug)
+
 ☐ Collision radius based on mass
+
 ☐ UI for parameters
+
 ☐ Zoomable canvas
+
 ☐ Option: draw paths
+
 ☐ Proto disk through Gaussian distribution
+
 ☐ Save/load system
