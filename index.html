@@ -11,9 +11,13 @@
     background: #111;
     color: rgba(255,255,255, 0.6);
     font-family: sans-serif;
+    line-height: 1.3;
   }
   h1, h2 {
     font-weight: normal;
+  }
+  h1 {
+    text-transform: uppercase;
   }
 
   #processing-canvas {
@@ -23,15 +27,90 @@
     width: 100%;
     height: 100%;
     z-index: -1;
+    background-color: #111;
+  }
+
+  #dialog {
+    background-color: rgba(255,255,255, 0.7);
+    color: #222;
+    padding: 1em;
+    max-width: 30em;
+    margin: 0 auto;
+    transition: transform 0.3s ease;
+  }
+  #dialog.closed {
+    transform: translateY(-100%);
+  }
+
+  #dialogOpen {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    font-size: 2em;
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+  }
+  #dialogOpen:hover {
+    color: #aaa;
+  }
+
+  label {
+    display: block;
+    margin-top: .5em;
+  }
+  input {
+    background: transparent;
+    border: 0 solid rgba(150,150,150, 0.7);
+    border-bottom-width: 1px;
+    font-size: 1em;
+    padding: 0.1em 0.4em;
+    line-height: 1;
+  }
+  button {
+    display: block;
+    padding: 0.3em 1em;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    border: 0;
+    background: rgba(50,50,50, 0.7);
+    color: #fff;
+    margin: 1em auto;
   }
   </style>
 </head>
 <body>
 
-<h1>Gravity</h1>
-<h2>Simple universal gravity simulation with processing.js</h2>
 
 <canvas id="processing-canvas" width="100%" height="100%"></canvas>
+
+<div id="dialog" class="open">
+  <h1>Gravity</h1>
+  <h2>Simple universal gravity simulation</h2>
+  <form action="#" id="params">
+    <label for="partCount">Initial part count (large numbers make start slow)</label>
+    <input type="number" min="0.1" step="1" id="partCount" value="1000">
+
+    <label for="partMassFactor">Part mass factor (multiplier)</label>
+    <input type="number" min="0.1" step="0.1" id="partMassFactor" value="0.2">
+
+    <label for="centerMass">Mass of the central part</label>
+    <input type="number" min="1" step="1" id="centerMass" value="100000">
+
+    <label for="gravitationalConstant">Gravitational constant</label>
+    <input type="number" min="0.1" step="0.1" id="gravitationalConstant" value="1.0">
+
+
+    <button id="start">Start &raquo;</button>
+  </form>
+
+</div>
+
+<a href="#" id="dialogOpen">⇵</a>
 
 <script type="text/javascript">
 
@@ -40,6 +119,36 @@ var SKETCH_OPTIONS = {
   partCount: 1000,
   partMassFactor: 0.2,
   gravitationalConstant: 1.0
+};
+
+var restartWithInputValues = function(evt) {
+  evt.preventDefault();
+  evt.stopPropagation();
+
+  function floatVal(id) {
+    return parseFloat(document.getElementById(id).value, 10);
+  }
+  SKETCH_OPTIONS.centerMass = floatVal('centerMass');
+  SKETCH_OPTIONS.partCount = parseInt(floatVal('partCount'));
+  SKETCH_OPTIONS.partMassFactor = floatVal('partMassFactor');
+  SKETCH_OPTIONS.gravitationalConstant = floatVal('gravitationalConstant');
+
+  document.getElementById('dialog').className = "closed";
+  restart();
+};
+
+document.getElementById('start').onclick = restartWithInputValues;
+document.getElementById('params').onsubmit = restartWithInputValues;
+
+document.getElementById('dialogOpen').onclick = function(evt) {
+  evt.preventDefault();
+  evt.stopPropagation();
+  var dialog = document.getElementById('dialog');
+  if (dialog.className === "open") {
+    dialog.className = "closed";
+  } else {
+    dialog.className = "open";
+  }
 };
 
 function sketchProc(P) {
@@ -252,9 +361,10 @@ function sketchProc(P) {
 }
 
 var canvas = document.getElementById("processing-canvas");
-// attaching the sketchProc function to the canvas
+// attaching the sketchProc function to the canvas,
+// exit immediately to wait for user input
 var processing = new Processing(canvas, sketchProc);
-// processing.exit(); to detach it
+processing.exit();
 
 var restart = function() {
   processing.exit();
