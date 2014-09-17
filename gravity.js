@@ -101,10 +101,17 @@ function Gravity() {
       P.ellipse(this.x, this.y, size, size);
     };
     Part.prototype.collide = function(part) {
+      // smaller particle always moves, not the larger
+      if (part.m > this.m) {
+        this.x = part.x;
+        this.y = part.y;
+      }
+
       // totally inelastic collision
       this.vx = (this.m*this.vx + part.m*part.vx) / (this.m + part.m);
       this.vy = (this.m*this.vy + part.m*part.vy) / (this.m + part.m);
       this.m += part.m;
+      part.m = 0;
     };
     /*
     Determines the force from each part of the system and
