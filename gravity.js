@@ -68,8 +68,8 @@ function Gravity() {
     /**
     Converts mass to displayed size.
     */
-    const massToSize = function(m) {
-      return Math.log(m)*2;
+    const massToRadius = function(m) {
+      return Math.log(m);
     };
     /**
     Converts mass to displayed color.
@@ -89,16 +89,16 @@ function Gravity() {
       this.vx = vx;
       this.vy = vy;
       this.m = m;
+      this.radius = massToRadius(this.m);
     }
     Part.prototype.move = function() {
       this.x += this.vx * TIME_STEP;
       this.y += this.vy * TIME_STEP;
     };
     Part.prototype.draw = function(biggestMass) {
-      var size = massToSize(this.m),
       color = massToColor(this.m, biggestMass);
       P.fill(color);
-      P.ellipse(this.x, this.y, size, size);
+      P.ellipse(this.x, this.y, this.radius*2, this.radius*2);
     };
     Part.prototype.collide = function(part) {
       // smaller particle always moves, not the larger
@@ -112,6 +112,8 @@ function Gravity() {
       this.vy = (this.m*this.vy + part.m*part.vy) / (this.m + part.m);
       this.m += part.m;
       part.m = 0;
+      this.radius = massToRadius(this.m);
+      part.radius = massToRadius(part.m);
     };
     /*
     Determines the force from each part of the system and
@@ -129,7 +131,7 @@ function Gravity() {
         );
 
         // collision detection
-        if (r && r < COLLISION_RADIUS) {
+        if (r && r < COLLISION_CONSTANT) {
           self.collide(part);
           parts.splice(index, 1);
           return;
@@ -239,7 +241,7 @@ function Gravity() {
     P.setup = function() {
       P.size(CANVAS.width, CANVAS.height);
       P.ellipseMode(P.CENTER);
-      P.colorMode(P.HSB);
+      P.colorMode(P.HSB, 100);
       P.noStroke();
       P.textSize(24);
     };
