@@ -245,7 +245,7 @@ function Gravity() {
       this.parts.forEach(function(part){
         part.highlightPath = false;
       });
-      this.parts[i].highlightPath = true;
+      if (i > 0 && i < this.parts.length) this.parts[i].highlightPath = true;
     };
     PartSystem.prototype.randomizeParts = function(n, startVelocity) {
       for(var i = 0; i < n; i++) {
@@ -293,6 +293,7 @@ function Gravity() {
           return;
         }
       }
+      ps.setHighlighted(-1);
     };
     // END DEFINITIONS
 
