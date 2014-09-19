@@ -45,7 +45,8 @@ function Gravity() {
       height: window.innerHeight
     },
     TIME_STEP = 0.15,
-    COLLISION_RADIUS = 10.0;
+    COLLISION_CONSTANT = 2.0,
+    CLICK_RADIUS = 10.0;
 
     /**
     Newton's universal gravitation function.
@@ -68,8 +69,8 @@ function Gravity() {
     /**
     Converts mass to displayed size.
     */
-    const massToSize = function(m) {
-      return Math.log(m)*2;
+    const massToRadius = function(m) {
+      return Math.log(m);
     };
     /**
     Converts mass to displayed color.
@@ -83,28 +84,63 @@ function Gravity() {
       return P.color(0,0,0,0);
     };
 
+    /* List for drawable path vertices */
+    var drawPath = [];
+
     function Part(x, y, vx, vy, m) {
       this.x = x;
       this.y = y;
       this.vx = vx;
       this.vy = vy;
       this.m = m;
+      this.radius = massToRadius(this.m);
+      this.highlightPath = false;
     }
     Part.prototype.move = function() {
       this.x += this.vx * TIME_STEP;
       this.y += this.vy * TIME_STEP;
+
+      if (this.highlightPath && P.frameCount%4 === 0) {
+        drawPath.push([this.x, this.y]);
+      }
     };
     Part.prototype.draw = function(biggestMass) {
-      var size = massToSize(this.m),
       color = massToColor(this.m, biggestMass);
       P.fill(color);
-      P.ellipse(this.x, this.y, size, size);
+      if (this.highlightPath) {
+        P.strokeWeight(1);
+        P.stroke(0,0,90);
+      }
+      P.ellipse(this.x, this.y, this.radius*2, this.radius*2);
+      if (this.highlightPath) {
+        P.noStroke();
+      }
+    };
+    Part.prototype.checkClick = function(x, y) {
+      var dx = this.x - x,
+        dy = this.y - y,
+        result = Math.sqrt(dx*dx + dy*dy) < (this.radius + CLICK_RADIUS);
+      return result;
     };
     Part.prototype.collide = function(part) {
+      // smaller particle always moves, not the larger
+      if (part.m > this.m) {
+        this.x = part.x;
+        this.y = part.y;
+      }
+
       // totally inelastic collision
       this.vx = (this.m*this.vx + part.m*part.vx) / (this.m + part.m);
       this.vy = (this.m*this.vy + part.m*part.vy) / (this.m + part.m);
       this.m += part.m;
+      part.m = 0;
+      this.radius = massToRadius(this.m);
+      part.radius = massToRadius(part.m);
+
+      // highlight this part, if (part) was highlighted
+      if (part.highlightPath === true) {
+        this.highlightPath = true;
+      }
     };
     /*
     Determines the force from each part of the system and
@@ -116,13 +152,10 @@ function Gravity() {
         // distance of particles
         var dx = self.x-part.x,
         dy = self.y-part.y,
-        r = Math.sqrt(
-          dx*dx+
-          dy*dy
-        );
+        r = Math.sqrt(dx*dx + dy*dy);
 
         // collision detection
-        if (r && r < COLLISION_RADIUS) {
+        if (r && r < self.radius + part.radius + 2*COLLISION_CONSTANT) {
           self.collide(part);
           parts.splice(index, 1);
           return;
@@ -141,6 +174,7 @@ function Gravity() {
     function PartSystem() {
       this.parts = [];
       this.biggestMass = 0.0;
+      this.paused = false;
     }
     PartSystem.prototype.destroy = function() {
       this.parts = undefined;
@@ -158,6 +192,28 @@ function Gravity() {
     };
     PartSystem.prototype.update = function(draw) {
       var self = this;
+
+      if (draw && draw === true) {
+        P.fill(0);
+        P.rect(0, CANVAS.height - 60, 0, CANVAS.height - 40);
+        P.fill(90);
+        P.text(self.parts.length, 20, CANVAS.height - 40);
+
+        P.noFill();
+        P.strokeWeight(1);
+        P.stroke(0,0,100, 60);
+        P.beginShape();
+        drawPath.forEach(function(vertex){
+          P.curveVertex(vertex[0], vertex[1]);
+        });
+        P.endShape();
+        P.noStroke();
+
+        if (drawPath.length > 1000) {
+          drawPath.splice(0,1);
+        }
+      }
+
       self.parts.forEach(function(part, index){
         // Update the position and speed of the part
         part.updateVelocity(self.parts);
@@ -173,16 +229,23 @@ function Gravity() {
           self.biggestMass = part.m;
         }
       });
-
-      if (draw && draw === true) {
-        P.fill(0);
-        P.rect(0, CANVAS.height - 60, 0, CANVAS.height - 40);
-        P.fill(90);
-        P.text(self.parts.length, 20, CANVAS.height - 40);
-      }
     };
     PartSystem.prototype.redraw = function() {
-      this.update(true);
+      if (this.paused) {
+        P.fill(90);
+        P.text("PAUSE", CANVAS.width*0.5, CANVAS.height*0.5);
+      } else {
+        P.fill(0,0,0, 40);
+        P.rect(0,0,CANVAS.width,CANVAS.height);
+        this.update(true);
+      }
+    };
+    PartSystem.prototype.setHighlighted = function(i) {
+      drawPath = [];
+      this.parts.forEach(function(part){
+        part.highlightPath = false;
+      });
+      this.parts[i].highlightPath = true;
     };
     PartSystem.prototype.randomizeParts = function(n, startVelocity) {
       for(var i = 0; i < n; i++) {
@@ -223,6 +286,14 @@ function Gravity() {
         this.add(part);
       }
     };
+    PartSystem.prototype.handleClick = function(x, y) {
+      for (var i = 0; i < this.parts.length; i++) {
+        if (this.parts[i].checkClick(x, y) === true) {
+          ps.setHighlighted(i);
+          return;
+        }
+      }
+    };
     // END DEFINITIONS
 
 
@@ -232,20 +303,27 @@ function Gravity() {
     P.setup = function() {
       P.size(CANVAS.width, CANVAS.height);
       P.ellipseMode(P.CENTER);
-      P.colorMode(P.HSB);
+      P.colorMode(P.HSB, 100);
       P.noStroke();
       P.textSize(24);
     };
 
     // Override draw function, by default it will be called 60 times per second
     P.draw = function() {
-      P.colorMode(P.RGB);
-      P.fill(0,0,0, 40);
-      P.rect(0,0, CANVAS.width,CANVAS.height);
-      P.colorMode(P.HSB, 100);
       ps.redraw();
     };
 
+    document.onkeydown = function(evt) {
+      // spacebar
+      if (evt.keyCode == 32) {
+        evt.preventDefault();
+        ps.paused = !ps.paused;
+      }
+    };
+
+    document.onmousedown = function(evt) {
+      ps.handleClick(evt.x, evt.y);
+    }
   }
 
   var canvas = document.getElementById("processing-canvas");
