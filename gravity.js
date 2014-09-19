@@ -45,7 +45,7 @@ function Gravity() {
       height: window.innerHeight
     },
     TIME_STEP = 0.15,
-    COLLISION_CONSTANT = 10.0,
+    COLLISION_CONSTANT = 2.0,
     CLICK_RADIUS = 10.0;
 
     /**
@@ -155,7 +155,7 @@ function Gravity() {
         r = Math.sqrt(dx*dx + dy*dy);
 
         // collision detection
-        if (r && r < COLLISION_CONSTANT) {
+        if (r && r < self.radius + part.radius + 2*COLLISION_CONSTANT) {
           self.collide(part);
           parts.splice(index, 1);
           return;
