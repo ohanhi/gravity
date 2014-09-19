@@ -21,14 +21,14 @@ Click on the GIF
 
 ☑ UI for parameters
 
-☐ Collision repositioning (jagged collisions bug)
+☑ Collision repositioning (jagged collisions bug)
 
-☐ Collision radius based on mass
+☑ Collision radius based on mass
 
-☐ Zoomable canvas
-
-☐ Option: draw paths
+☑ Option: draw paths
 
 ☐ Proto disk through Gaussian distribution
+
+☐ Zoomable canvas
 
 ☐ Save/load system
