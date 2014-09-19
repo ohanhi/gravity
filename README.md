@@ -19,11 +19,11 @@ Click on the GIF
 
 ☑ Parameters for the system
 
+☑ UI for parameters
+
 ☐ Collision repositioning (jagged collisions bug)
 
 ☐ Collision radius based on mass
-
-☐ UI for parameters
 
 ☐ Zoomable canvas
 
