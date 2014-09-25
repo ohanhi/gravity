@@ -267,24 +267,32 @@ function Gravity() {
       }
     };
     PartSystem.prototype.createProtoDisk = function(n) {
-      this.addCentralPart(n);
+      this.addCentralPart();
 
-      // all other parts get an initial velocity about "around the centre"
-      for(var i = 0; i < n; i++) {
-        var x = Math.random()*CANVAS.width,
-          y = Math.random()*CANVAS.height,
-          cx = CANVAS.width*0.5,
-          cy = CANVAS.height*0.5,
-          dx = x - cx,
-          dy = y - cy,
-          vx = Math.random()*20,
-          vy = Math.random()*20;
-        if (dy > 0) {
-          vx = -vx;
-        }
-        if (dx < 0) {
-          vy = -vy;
-        }
+      var canvasMin = (CANVAS.width < CANVAS.height) ? CANVAS.width : CANVAS.height,
+        gaussianFactor = canvasMin * 0.15;
+        cx = CANVAS.width * 0.5,
+        cy = CANVAS.height * 0.5;
+
+      for (var i = 0; i < n; i++) {
+        var x, y, vx, vy, d, a, v;
+
+        // Get Gaussian random position
+        x = P.randomGaussian() * gaussianFactor;
+        y = P.randomGaussian() * gaussianFactor;
+        d = P.dist(x,y, 0,0);
+
+        // Calculate angle, randomize start velocity along tangent
+        a = P.atan2(y, x) + P.PI,
+        v = Math.random()*8 + 2;
+
+        vx = v * P.sin(a);
+        vy = -1 * v * P.cos(a);
+
+        // Move to canvas centre
+        x += cx;
+        y += cy;
+
         var part = new Part(
           x, y,
           vx, vy,
