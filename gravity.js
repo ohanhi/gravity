@@ -77,11 +77,11 @@ function Gravity() {
     */
     const colorC = 10/SKETCH_OPTIONS.partMassFactor;
     const massToColor = function(m, biggestMass) {
-      if (biggestMass > 0) {
-        var hue = parseInt((P.atan(m/biggestMass)*colorC*60+10)%100, 10);
-        return P.color(hue,100,100, 80);
+      if (!biggestMass) {
+        biggestMass = m;
       }
-      return P.color(0,0,0,0);
+      var hue = parseInt((P.atan(m/biggestMass)*colorC*60+10)%100, 10);
+      return P.color(hue,100,100, 80);
     };
 
     /* List for drawable path vertices */
