@@ -46,7 +46,8 @@ function Gravity() {
     },
     TIME_STEP = 0.15,
     COLLISION_CONSTANT = 2.0,
-    CLICK_RADIUS = 10.0;
+    CLICK_RADIUS = 10.0,
+    COORD_MAX = 2000;
 
     /**
     Newton's universal gravitation function.
@@ -149,6 +150,12 @@ function Gravity() {
     Part.prototype.updateVelocity = function(parts) {
       var self = this, ax = 0, ay = 0;
       parts.forEach(function(part, index){
+        // remove parts too far from the center
+        if (P.abs(part.x) > COORD_MAX || P.abs(part.y) > COORD_MAX) {
+          parts.splice(index, 1);
+          return;
+        }
+
         // distance of particles
         var dx = self.x-part.x,
         dy = self.y-part.y,
