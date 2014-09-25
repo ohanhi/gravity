@@ -25,9 +25,9 @@ Click on the GIF
 
 ☑ Collision radius based on mass
 
-☑ Option: draw paths
+☑ Option: draw paths - click a part to get its path drawn!
 
-☐ Proto disk through Gaussian distribution
+☑ Proto disk through Gaussian distribution
 
 ☐ Zoomable canvas
 
